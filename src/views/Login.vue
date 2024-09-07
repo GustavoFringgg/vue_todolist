@@ -51,6 +51,7 @@
 </template>
 <!-- -------------------------- -->
 <script setup>
+import Swal from 'sweetalert2/dist/sweetalert2.js'
 import axios from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -71,22 +72,53 @@ const signInField = ref({
 
 const signInPost = async () => {
   if (!signInField.value.email) {
-    return alert('請輸入EMAIL')
+    return Swal.fire({
+      position: 'top',
+      title: '請輸入Email',
+      icon: 'error',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
   }
   if (!signInField.value.password) {
-    return alert('請輸入密碼')
+    return Swal.fire({
+      position: 'top',
+      title: '請輸入密碼',
+      icon: 'error',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
   }
   try {
     const res = await axios.post(`${api}/users/sign_in`, signInField.value)
     signStatus.value = res.data.status
     signInToken.value = res.data.token
-    signInMessage.value = `${res.data.nickname}登入成功`
-    alert(signInMessage.value)
+    Swal.fire({
+      position: 'top',
+      title: `${res.data.nickname}登入成功`,
+      icon: 'success',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
 
     document.cookie = `userToken=${res.data.token}`
     tokenCheck()
   } catch (error) {
-    alert((errMsg.value = error.response.data.message))
+    Swal.fire({
+      position: 'top',
+      title: `${(errMsg.value = error.response.data.message)}`,
+      icon: 'error',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
   }
 }
 

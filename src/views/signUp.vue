@@ -74,6 +74,7 @@
 </template>
 <!-- ------------------- -->
 <script setup>
+import Swal from 'sweetalert2/dist/sweetalert2.js'
 import axios, { Axios, AxiosError } from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -93,17 +94,56 @@ const signUpField = ref({
 
 const signUpPost = async () => {
   if (signUpField.value.password !== signPWCheck.value) {
-    return alert('密碼不相同')
+    return Swal.fire({
+      position: 'top',
+      title: '密碼不相同',
+      icon: 'error',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
+  }
+  if (
+    !signUpField.value.email ||
+    !signUpField.value.password ||
+    !signUpField.value.nickname ||
+    !signPWCheck.value
+  ) {
+    return Swal.fire({
+      position: 'top',
+      title: '資料不齊全',
+      icon: 'error',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
   }
   try {
     const res = await axios.post(`${api}/users/sign_up`, signUpField.value)
     signUpUID.value = res.data.uid
-    alert('註冊成功，導入登入頁面')
+    Swal.fire({
+      position: 'top',
+      title: '註冊成功，導回登入頁',
+      icon: 'success',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
     router.push({ path: '/' })
   } catch (error) {
     if (error.name === 'AxiosError') {
-      error.message = '用戶已存在'
-      return alert(error.message)
+      return Swal.fire({
+        position: 'top',
+        title: '用戶已存在',
+        icon: 'error',
+        timer: 1000,
+        toast: true,
+        showConfirmButton: false,
+        timerProgressBar: true
+      })
     }
   }
 }

@@ -176,7 +176,15 @@ const signoutPost = async () => {
   )
   document.cookie = 'userToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
   signOutCheck.value = '已登出'
-  alert(signOutCheck.value)
+  Swal.fire({
+    position: 'top',
+    title: `${signOutCheck.value}`,
+    icon: 'success',
+    timer: 1000,
+    toast: true,
+    showConfirmButton: false,
+    timerProgressBar: true
+  })
   checkUser.value.uid = ''
 }
 
