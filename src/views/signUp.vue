@@ -94,15 +94,7 @@ const signUpField = ref({
 
 const signUpPost = async () => {
   if (signUpField.value.password !== signPWCheck.value) {
-    return Swal.fire({
-      position: 'top',
-      title: '密碼不相同',
-      icon: 'error',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    return showAlert('密碼不相同', 'error')
   }
   if (
     !signUpField.value.email ||
@@ -110,15 +102,7 @@ const signUpPost = async () => {
     !signUpField.value.nickname ||
     !signPWCheck.value
   ) {
-    return Swal.fire({
-      position: 'top',
-      title: '資料不齊全',
-      icon: 'error',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    return showAlert('資料不齊全', 'error')
   }
   try {
     const res = await axios.post(`${api}/users/sign_up`, signUpField.value)
@@ -135,16 +119,19 @@ const signUpPost = async () => {
     router.push({ path: '/' })
   } catch (error) {
     if (error.name === 'AxiosError') {
-      return Swal.fire({
-        position: 'top',
-        title: '用戶已存在',
-        icon: 'error',
-        timer: 1000,
-        toast: true,
-        showConfirmButton: false,
-        timerProgressBar: true
-      })
+      return showAlert('用戶已存在', 'error')
     }
   }
+}
+const showAlert = (title, icon) => {
+  return Swal.fire({
+    position: 'top',
+    title: title,
+    icon: icon,
+    timer: 1000,
+    toast: true,
+    showConfirmButton: false,
+    timerProgressBar: true
+  })
 }
 </script>
