@@ -4,7 +4,7 @@
       <h1><a href="#">ONLINE TODO LIST</a></h1>
       <ul>
         <li class="todo_sm">
-          <a href="#"
+          <a href="/vue_todolist/#/todolist"
             ><span>{{ checkUser.nickname }}的代辦事項</span></a
           >
           <RouterLink to="/" @click="signoutPost">登出</RouterLink>
@@ -135,11 +135,13 @@
 import axios from 'axios'
 import { computed, ref } from 'vue'
 import Swal from 'sweetalert2/dist/sweetalert2.js'
+import { useRouter } from 'vue-router'
 
 const api = 'https://todolist-api.hexschool.io'
+const local = 'http://localhost:3000'
 const signInToken = ref('')
 const errMsg = ref('')
-
+const router = useRouter()
 //驗證
 const checkUser = ref({
   nickname: '',
@@ -151,14 +153,31 @@ const signCheck = async () => {
     /(?:(?:^|.*;\s*)userToken\s*\=\s*([^;]*).*$)|^.*$/,
     '$1'
   )
+  if (!signInToken.value) {
+    Swal.fire({
+      position: 'top',
+      title: `請登入`,
+      icon: 'error',
+      timer: 1000,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
+    router.push({ path: '/' })
+  }
 
-  const res = await axios.get(`${api}/users/checkout`, {
-    headers: {
-      Authorization: signInToken.value
-    }
-  })
-  checkUser.value = res.data
-  getTodos()
+  try {
+    const res = await axios.get(`${api}/users/checkout`, {
+      headers: {
+        Authorization: signInToken.value
+      }
+    })
+
+    checkUser.value = res.data
+    getTodos()
+  } catch (error) {
+    console.log(error)
+  }
 }
 signCheck()
 
@@ -231,7 +250,7 @@ const addTodos = async () => {
   }
   try {
     newTodo.value.content = todoField.value
-    const res = await axios.post(`${api}/todos/`, newTodo.value, {
+    const res = await axios.post(`${local}/todos/`, newTodo.value, {
       headers: {
         Authorization: signInToken.value
       }

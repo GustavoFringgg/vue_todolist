@@ -58,11 +58,11 @@ import { useRouter } from 'vue-router'
 
 //api router
 const api = 'https://todolist-api.hexschool.io'
+const local = 'http://localhost:3000'
 const router = useRouter()
 
 //sign in
 const signStatus = ref()
-const signInMessage = ref('')
 const errMsg = ref('')
 const signInToken = ref('')
 const signInField = ref({
@@ -94,12 +94,13 @@ const signInPost = async () => {
     })
   }
   try {
-    const res = await axios.post(`${api}/users/sign_in`, signInField.value)
+    const res = await axios.post(`${local}/users/sign_in`, signInField.value)
+    console.log('res:', res)
     signStatus.value = res.data.status
     signInToken.value = res.data.token
     Swal.fire({
       position: 'top',
-      title: `${res.data.nickname}登入成功`,
+      title: `${res.data.user.name}登入成功`,
       icon: 'success',
       timer: 1000,
       toast: true,
@@ -107,7 +108,7 @@ const signInPost = async () => {
       timerProgressBar: true
     })
 
-    document.cookie = `userToken=${res.data.token}`
+    document.cookie = `userToken=${res.data.user.token}`
     tokenCheck()
   } catch (error) {
     Swal.fire({
@@ -138,7 +139,7 @@ const tokenCheck = async () => {
     console.log('尚未登入')
     return
   }
-  const res = await axios.get(`${api}/users/checkout`, {
+  const res = await axios.get(`${local}/users/checkout`, {
     headers: {
       Authorization: signInToken.value
     }
