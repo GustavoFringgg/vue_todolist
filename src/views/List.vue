@@ -5,8 +5,9 @@
       <ul>
         <li class="todo_sm">
           <a href="/vue_todolist/#/todolist"
-            ><span>{{ checkUser.nickname }}的代辦事項</span></a
+            ><span>{{ checkUser.user.nickname }}的代辦事項</span></a
           >
+          <!-- <a @click="signoutPost">登出</a> -->
           <RouterLink to="/" @click="signoutPost">登出</RouterLink>
         </li>
       </ul>
@@ -96,7 +97,7 @@
           </div>
           <div class="todoList_items" v-if="activeTab === 'tabok'">
             <ul class="todoList_item">
-              <li v-for="(list, index) in checkListOK" :key="list.id">
+              <li v-for="list in checkListOK" :key="list.id">
                 <label class="todoList_label" :for="list.id">
                   <input
                     class="todoList_input"
@@ -143,10 +144,7 @@ const signInToken = ref('')
 const errMsg = ref('')
 const router = useRouter()
 //驗證
-const checkUser = ref({
-  nickname: '',
-  uid: ''
-})
+const checkUser = ref('')
 
 const signCheck = async () => {
   signInToken.value = document.cookie.replace(
@@ -167,12 +165,12 @@ const signCheck = async () => {
   }
 
   try {
-    const res = await axios.get(`${api}/users/checkout`, {
+    const res = await axios.get(`${local}/users/checkout`, {
       headers: {
         Authorization: signInToken.value
       }
     })
-
+    console.log('res.data:', res.data)
     checkUser.value = res.data
     getTodos()
   } catch (error) {
@@ -184,16 +182,13 @@ signCheck()
 //登出
 const signOutCheck = ref('')
 const signoutPost = async () => {
-  const res = await axios.post(
-    `${api}/users/sign_out`,
-    {},
-    {
-      headers: {
-        Authorization: signInToken.value
-      }
+  const res = await axios.post(`${local}/users/sign_out`, {
+    headers: {
+      Authorization: signInToken.value
     }
-  )
-  document.cookie = 'userToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
+  })
+
+  document.cookie = 'userToken='
   signOutCheck.value = '已登出'
   Swal.fire({
     position: 'top',
@@ -204,14 +199,15 @@ const signoutPost = async () => {
     showConfirmButton: false,
     timerProgressBar: true
   })
-  checkUser.value.uid = ''
+  checkUser.value = ''
+  router.push({ path: '/' })
 }
 
 const getTodo = ref([])
 const todoMsg = ref('')
 const getTodos = async () => {
   try {
-    const res = await axios.get(`${api}/todos/`, {
+    const res = await axios.get(`${local}/todos/`, {
       headers: {
         Authorization: signInToken.value
       }

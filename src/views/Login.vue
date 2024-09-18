@@ -95,7 +95,7 @@ const signInPost = async () => {
   }
   try {
     const res = await axios.post(`${local}/users/sign_in`, signInField.value)
-    console.log('res:', res)
+
     signStatus.value = res.data.status
     signInToken.value = res.data.token
     Swal.fire({
@@ -144,10 +144,11 @@ const tokenCheck = async () => {
       Authorization: signInToken.value
     }
   })
+  console.log('resdata:', res.data)
   checkUser.value = res.data
 
   router.push({ path: '/todolist' })
 }
 
-tokenCheck()
+// tokenCheck()
 </script>
