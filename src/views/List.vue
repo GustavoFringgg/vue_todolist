@@ -49,19 +49,20 @@
           </ul>
           <div class="todoList_items" v-if="activeTab === 'taball'">
             <ul class="todoList_item">
-              <li v-for="(list, index) in getTodo" :key="list.id">
-                <label class="todoList_label" :for="list.id">
+              <li v-for="(list, index) in getTodo" :key="index">
+                <label class="todoList_label" :for="list._id">
                   <input
                     class="todoList_input"
                     type="checkbox"
                     value="true"
-                    :id="list.id"
+                    :id="list._id"
                     v-model="list.status"
                   />
-                  <span>{{ list.content }}</span>
+
+                  <span>{{ list.todos }}</span>
                 </label>
 
-                <a href="" @click.prevent="deleteTodos(list.id)">
+                <a href="" @click.prevent="deleteTodos(list._id)">
                   <i class="fa fa-times"></i>
                 </a>
               </li>
@@ -82,10 +83,10 @@
                     :id="list.id"
                     v-model="list.status"
                   />
-                  <span>{{ list.content }}</span>
+                  <span>{{ list.todos }}</span>
                 </label>
 
-                <a href="" @click.prevent="deleteTodos(list.id)">
+                <a href="" @click.prevent="deleteTodos(list._id)">
                   <i class="fa fa-times"></i>
                 </a>
               </li>
@@ -106,10 +107,10 @@
                     :id="list.id"
                     v-model="list.status"
                   />
-                  <span>{{ list.content }}</span>
+                  <span>{{ list.todos }}</span>
                 </label>
 
-                <a href="" @click.prevent="deleteTodos(list.id)">
+                <a href="" @click.prevent="deleteTodos(list._id)">
                   <i class="fa fa-times"></i>
                 </a>
               </li>
@@ -122,10 +123,7 @@
         </div>
         <div style="text-align: center" v-else>
           <h2>目前尚無待辦事項</h2>
-          <img
-            src="https://s3-alpha-sig.figma.com/img/7465/9ab1/8911ab6dcbda98df56e26aa23c6643ac?Expires=1725840000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=BmQcA76gk9l2y3s7vsRdmBkTjO8lYemchgz2fvvQqd6vEzKKoIKpTWxR5Iz6gkNQvICzQzSjfpXqRAiCmhCNaAQ6Nh7~7r0wEuxTCVOUzW8CGb7FlmUhs6GheqqJYxcxGV-lXtINwxY64LwHtFEXuKVwtdn2SiYuHNupWiTlTN77sAjR8vDZyjkSsuq4CXGVik3UGeHkJnsNAa-6eQ~QB-7HcW4F914N17QBifY47i8f~-AxsoBQ4OAmEM7uO-Jv1g1Wu7FEvy8-otCk79O2XZv6BpUsFTUyvDTR113J0ksi79QkwpeD8I6W4wZ1NxKwmvrxER6-COl7hStdVP1-QQ__"
-            alt="#"
-          />
+          <img :src="empty" alt="#" />
         </div>
       </div>
     </div>
@@ -134,10 +132,10 @@
 <!-- ---------------------------------------------------------- -->
 <script setup>
 import axios from 'axios'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import Swal from 'sweetalert2/dist/sweetalert2.js'
 import { useRouter } from 'vue-router'
-
+import empty from '/src/image/empty.png'
 const api = 'https://todolist-api.hexschool.io'
 const local = 'http://localhost:3000'
 const signInToken = ref('')
@@ -170,29 +168,37 @@ const signCheck = async () => {
         Authorization: signInToken.value
       }
     })
-    console.log('res.data:', res.data)
+
     checkUser.value = res.data
     getTodos()
   } catch (error) {
-    console.log(error)
+    Swal.fire({
+      position: 'top',
+      title: error.response.data.message,
+      icon: 'error',
+      timer: 500,
+      toast: true,
+      showConfirmButton: false,
+      timerProgressBar: true
+    })
+    router.push({ path: '/' })
   }
 }
 signCheck()
 
 //登出
-const signOutCheck = ref('')
+
 const signoutPost = async () => {
   const res = await axios.post(`${local}/users/sign_out`, {
     headers: {
       Authorization: signInToken.value
     }
   })
-
+  console.log('signoutPost:', res)
   document.cookie = 'userToken='
-  signOutCheck.value = '已登出'
   Swal.fire({
     position: 'top',
-    title: `${signOutCheck.value}`,
+    title: `${res.data.message}`,
     icon: 'success',
     timer: 1000,
     toast: true,
@@ -212,14 +218,16 @@ const getTodos = async () => {
         Authorization: signInToken.value
       }
     })
+    console.log('getTodo:', res)
     todoMsg.value = ''
-    res.data.data.forEach((item) => {
-      const createTime = item.createTime
-      const date = new Date(createTime * 1000)
-      const formate = date.toISOString().slice(0, 19).replace('T', ' ')
-      item.createTime = formate
-    })
-    getTodo.value = res.data.data
+    // res.data.data.forEach((item) => {
+    //   const createTime = item.createTime
+    //   const date = new Date(createTime * 1000)
+    //   const formate = date.toISOString().slice(0, 19).replace('T', ' ')
+    //   item.createTime = formate
+    // })
+
+    getTodo.value = res.data.message
   } catch (error) {
     errMsg.value = error.response?.data?.message || 'geterror'
   }
@@ -230,7 +238,7 @@ getTodos()
 //新增
 const todoField = ref('')
 const newTodo = ref({
-  content: ''
+  todos: ''
 })
 const addTodos = async () => {
   if (!todoField.value || !todoField.value.trim()) {
@@ -245,12 +253,13 @@ const addTodos = async () => {
     })
   }
   try {
-    newTodo.value.content = todoField.value
+    newTodo.value.todos = todoField.value
     const res = await axios.post(`${local}/todos/`, newTodo.value, {
       headers: {
         Authorization: signInToken.value
       }
     })
+
     todoField.value = ''
     Swal.fire({
       position: 'top',
@@ -271,13 +280,13 @@ const addTodos = async () => {
 //刪除
 const deleteTodos = async (id) => {
   try {
-    const res = await axios.delete(`${api}/todos/${id}`, {
+    const res = await axios.delete(`${local}/todos/${id}`, {
       headers: {
         Authorization: signInToken.value
       }
     })
 
-    getTodos()
+    await getTodos()
   } catch (error) {
     errMsg.value = error.response?.data?.message || 'delerror'
   }
@@ -289,7 +298,7 @@ const selectTab = (tab) => {
   activeTab.value = tab
 }
 
-//未完成
+// //未完成
 const checkListNot = computed(() => {
   return getTodo.value.filter((item) => item.status === false)
 })
@@ -297,5 +306,9 @@ const checkListNot = computed(() => {
 //已完成
 const checkListOK = computed(() => {
   return getTodo.value.filter((item) => item.status === true)
+})
+
+onMounted(async () => {
+  await getTodos()
 })
 </script>

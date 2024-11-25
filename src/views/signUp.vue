@@ -2,17 +2,8 @@
   <div id="signUpPage" class="bg-yellow">
     <div class="conatiner signUpPage vhContainer">
       <div class="side">
-        <a href="#"
-          ><img
-            class="logoImg"
-            src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/logo.png"
-            alt=""
-        /></a>
-        <img
-          class="d-m-n"
-          src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/img.png"
-          alt="workImg"
-        />
+        <a href="#"><img class="logoImg" :src="logo" alt="title" /></a>
+        <img class="d-m-n" :src="main" alt="here" />
       </div>
       <div>
         <form class="formControls" action="index.html">
@@ -78,8 +69,8 @@ import Swal from 'sweetalert2/dist/sweetalert2.js'
 import axios from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-
-const api = 'https://todolist-api.hexschool.io'
+import main from '/src/image/main.png'
+import logo from '/src/image/logo.png'
 const local = 'http://localhost:3000'
 
 const signUpUID = ref('')

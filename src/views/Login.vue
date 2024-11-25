@@ -3,17 +3,8 @@
   <div id="loginPage" class="bg-yellow">
     <div class="conatiner loginPage vhContainer">
       <div class="side">
-        <a href="#"
-          ><img
-            class="logoImg"
-            src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/logo.png"
-            alt=""
-        /></a>
-        <img
-          class="d-m-n"
-          src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/img.png"
-          alt="workImg"
-        />
+        <a href="#"><img class="logoImg" :src="logo" alt="title" /></a>
+        <img class="d-m-n" :src="main" alt="here" />
       </div>
       <div>
         <form class="formControls" action="index.html">
@@ -55,9 +46,10 @@ import Swal from 'sweetalert2/dist/sweetalert2.js'
 import axios from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-
+import main from '/src/image/main.png'
+import logo from '/src/image/logo.png'
 //api router
-const api = 'https://todolist-api.hexschool.io'
+
 const local = 'http://localhost:3000'
 const router = useRouter()
 
@@ -139,15 +131,18 @@ const tokenCheck = async () => {
     console.log('尚未登入')
     return
   }
-  const res = await axios.get(`${local}/users/checkout`, {
-    headers: {
-      Authorization: signInToken.value
-    }
-  })
-  console.log('resdata:', res.data)
-  checkUser.value = res.data
+  try {
+    const res = await axios.get(`${local}/users/checkout`, {
+      headers: {
+        Authorization: signInToken.value
+      }
+    })
+    checkUser.value = res.data
 
-  router.push({ path: '/todolist' })
+    router.push({ path: '/todolist' })
+  } catch (error) {
+    console.log('tokencheckerror:', error)
+  }
 }
 
 // tokenCheck()
