@@ -20,7 +20,7 @@
             <i class="fa fa-plus"></i>
           </a>
         </div>
-        <div class="todoList_list" v-if="getTodo.length !== 0">
+        <div class="todoList_list" v-if="getTodo">
           <ul class="todoList_tab">
             <li>
               <a
@@ -49,7 +49,7 @@
           </ul>
           <div class="todoList_items" v-if="activeTab === 'taball'">
             <ul class="todoList_item">
-              <li v-for="(list, index) in getTodo" :key="index">
+              <li v-for="(list, index) in getTodo" :key="list._id">
                 <label class="todoList_label" :for="list._id">
                   <input
                     class="todoList_input"
@@ -57,6 +57,7 @@
                     value="true"
                     :id="list._id"
                     v-model="list.status"
+                    @click="toggleStatus(list._id)"
                   />
 
                   <span>{{ list.todos }}</span>
@@ -82,6 +83,7 @@
                     value="true"
                     :id="list.id"
                     v-model="list.status"
+                    @click="toggleStatus(list._id)"
                   />
                   <span>{{ list.todos }}</span>
                 </label>
@@ -106,6 +108,7 @@
                     value="true"
                     :id="list.id"
                     v-model="list.status"
+                    @click="toggleStatus(list._id)"
                   />
                   <span>{{ list.todos }}</span>
                 </label>
@@ -136,7 +139,7 @@ import { computed, onMounted, ref } from 'vue'
 import Swal from 'sweetalert2/dist/sweetalert2.js'
 import { useRouter } from 'vue-router'
 import empty from '/src/image/empty.png'
-const api = 'https://todolist-api.hexschool.io'
+
 const local = 'http://localhost:3000'
 const signInToken = ref('')
 const errMsg = ref('')
@@ -277,6 +280,19 @@ const addTodos = async () => {
   }
 }
 
+const toggleStatus = async (id) => {
+  const res = await axios.patch(
+    `${local}/todos/${id}/toggle`,
+    {},
+    {
+      headers: {
+        Authorization: signInToken.value
+      }
+    }
+  )
+  console.log(res.data)
+  getTodos()
+}
 //刪除
 const deleteTodos = async (id) => {
   try {
@@ -285,11 +301,10 @@ const deleteTodos = async (id) => {
         Authorization: signInToken.value
       }
     })
-
-    await getTodos()
   } catch (error) {
     errMsg.value = error.response?.data?.message || 'delerror'
   }
+  await getTodos()
 }
 
 //分類 tab
