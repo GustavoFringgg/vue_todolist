@@ -133,14 +133,14 @@ const tokenCheck = async () => {
   try {
     const res = await axios.get(`${local}/users/checkout`, {
       headers: {
-        Authorization: signInToken.value
+        Authorization: `Bearer ${signInToken.value}`
       }
     })
     checkUser.value = res.data
 
     router.push({ path: '/todolist' })
   } catch (error) {
-    console.log('tokencheckerror:', error)
+    console.log('tokencheckerror:', error.message)
   }
 }
 </script>

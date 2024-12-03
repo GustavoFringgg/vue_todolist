@@ -135,7 +135,7 @@
 <!-- ---------------------------------------------------------- -->
 <script setup>
 import axios from 'axios'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import Swal from 'sweetalert2/dist/sweetalert2.js'
 import { useRouter } from 'vue-router'
 import empty from '/src/image/empty.png'
@@ -168,7 +168,7 @@ const signCheck = async () => {
   try {
     const res = await axios.get(`${local}/users/checkout`, {
       headers: {
-        Authorization: signInToken.value
+        Authorization: `Bearer ${signInToken.value}`
       }
     })
 
@@ -185,19 +185,28 @@ const signCheck = async () => {
       timerProgressBar: true
     })
     router.push({ path: '/' })
+    setTimeout(() => {
+      nextTick(() => {
+        location.reload() // 強制刷新頁面，保證渲染完成後再重新加載
+      })
+    }, 500)
   }
 }
 signCheck()
 
 //登出
 const signoutPost = async () => {
-  const res = await axios.post(`${local}/users/sign_out`, {
-    headers: {
-      Authorization: signInToken.value
+  const res = await axios.post(
+    `${local}/users/sign_out`,
+
+    {
+      headers: {
+        Authorization: `Bearer ${signInToken.value}`
+      }
     }
-  })
+  )
   console.log('signoutPost:', res)
-  document.cookie = 'userToken='
+  document.cookie = 'userToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
   Swal.fire({
     position: 'top',
     title: `${res.data.message}`,
@@ -207,7 +216,9 @@ const signoutPost = async () => {
     showConfirmButton: false,
     timerProgressBar: true
   })
+  signInToken.value = ''
   checkUser.value = ''
+  getTodo.value = []
   router.push({ path: '/' })
 }
 
@@ -217,7 +228,7 @@ const getTodos = async () => {
   try {
     const res = await axios.get(`${local}/todos/`, {
       headers: {
-        Authorization: signInToken.value
+        Authorization: `Bearer ${signInToken.value}`
       }
     })
     console.log('getTodo:', res)
@@ -256,7 +267,7 @@ const addTodos = async () => {
     newTodo.value.todos = todoField.value
     const res = await axios.post(`${local}/todos/`, newTodo.value, {
       headers: {
-        Authorization: signInToken.value
+        Authorization: `Bearer ${signInToken.value}`
       }
     })
 
@@ -283,7 +294,7 @@ const toggleStatus = async (id) => {
     {},
     {
       headers: {
-        Authorization: signInToken.value
+        Authorization: `Bearer ${signInToken.value}`
       }
     }
   )
@@ -295,7 +306,7 @@ const deleteTodos = async (id) => {
   try {
     const res = await axios.delete(`${local}/todos/${id}`, {
       headers: {
-        Authorization: signInToken.value
+        Authorization: `Bearer ${signInToken.value}`
       }
     })
   } catch (error) {
@@ -321,6 +332,10 @@ const checkListOK = computed(() => {
 })
 
 onMounted(async () => {
-  await getTodos()
+  if (signInToken.value) {
+    await getTodos() // 加載資料
+  } else {
+    router.push({ path: '/' }) // 如果沒 token，就跳轉回登入頁
+  }
 })
 </script>
