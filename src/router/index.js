@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import HomeView from '../views/Login.vue'
+import HomeView from '../views/LoginView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -11,11 +11,11 @@ const router = createRouter({
     },
     {
       path: '/signup',
-      component: () => import('../views/signUp.vue')
+      component: () => import('../views/SignUpView.vue')
     },
     {
       path: '/todolist',
-      component: () => import('../views/List.vue')
+      component: () => import('../views/TodoView.vue')
     },
     {
       path: '/:catchAll(.*)', // 捕捉所有未定義的路徑

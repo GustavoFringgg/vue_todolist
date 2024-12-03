@@ -99,8 +99,7 @@ const signInPost = async () => {
       showConfirmButton: false,
       timerProgressBar: true
     })
-
-    document.cookie = `userToken=${res.data.user.token}`
+    document.cookie = `userToken=${res.data.user.token}` //儲存cookie
     tokenCheck()
   } catch (error) {
     Swal.fire({
@@ -125,7 +124,7 @@ const tokenCheck = async () => {
   signInToken.value = document.cookie.replace(
     /(?:(?:^|.*;\s*)userToken\s*\=\s*([^;]*).*$)|^.*$/,
     '$1'
-  )
+  ) //讀取token
 
   if (!signInToken.value) {
     console.log('尚未登入')
@@ -144,6 +143,4 @@ const tokenCheck = async () => {
     console.log('tokencheckerror:', error)
   }
 }
-
-// tokenCheck()
 </script>

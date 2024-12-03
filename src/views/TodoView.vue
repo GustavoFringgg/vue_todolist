@@ -190,7 +190,6 @@ const signCheck = async () => {
 signCheck()
 
 //登出
-
 const signoutPost = async () => {
   const res = await axios.post(`${local}/users/sign_out`, {
     headers: {
@@ -235,8 +234,6 @@ const getTodos = async () => {
     errMsg.value = error.response?.data?.message || 'geterror'
   }
 }
-
-getTodos()
 
 //新增
 const todoField = ref('')
