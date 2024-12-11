@@ -18,6 +18,10 @@ const router = createRouter({
       component: () => import('../views/TodoView.vue')
     },
     {
+      path: '/new',
+      component: () => import('../views/newView.vue')
+    },
+    {
       path: '/:catchAll(.*)', // 捕捉所有未定義的路徑
       redirect: '/' // 重定向到首頁
     }

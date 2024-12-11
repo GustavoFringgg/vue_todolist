@@ -1,132 +1,159 @@
 <template>
-  <div id="todoListPage" class="bg-half">
-    <nav>
-      <h1><a href="#">ONLINE TODO LIST</a></h1>
-      <ul>
-        <li class="todo_sm">
-          <a href="/vue_todolist/#/todolist"
-            ><span>{{ checkUser.user.nickname }}的代辦事項</span></a
-          >
-          <!-- <a @click="signoutPost">登出</a> -->
-          <RouterLink to="/" @click="signoutPost">登出</RouterLink>
-        </li>
-      </ul>
-    </nav>
-    <div class="conatiner todoListPage vhContainer">
-      <div class="todoList_Content">
-        <div class="inputBox">
-          <input type="text" placeholder="請輸入待辦事項" v-model="todoField" />
-          <a href="" @click.prevent="addTodos(todoField)">
-            <i class="fa fa-plus"></i>
-          </a>
-        </div>
-        <div class="todoList_list" v-if="getTodo">
-          <ul class="todoList_tab">
-            <li>
-              <a
-                href="#"
-                :class="{ active: activeTab === 'taball' }"
-                @click.prevent="selectTab('taball')"
-                >全部</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                :class="{ active: activeTab === 'tabnot' }"
-                @click.prevent="selectTab('tabnot')"
-                >待完成</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                :class="{ active: activeTab === 'tabok' }"
-                @click.prevent="selectTab('tabok')"
-                >已完成</a
-              >
-            </li>
-          </ul>
-          <div class="todoList_items" v-if="activeTab === 'taball'">
-            <ul class="todoList_item">
-              <li v-for="(list, index) in getTodo" :key="list._id">
-                <label class="todoList_label" :for="list._id">
-                  <input
-                    class="todoList_input"
-                    type="checkbox"
-                    value="true"
-                    :id="list._id"
-                    v-model="list.status"
-                    @click="toggleStatus(list._id)"
-                  />
-
-                  <span>{{ list.todos }}</span>
-                </label>
-
-                <a href="" @click.prevent="deleteTodos(list._id)">
-                  <i class="fa fa-times"></i>
-                </a>
+  <div>
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-text">載入中...</div>
+    </div>
+    <div id="todoListPage" class="bg-half" v-else>
+      <nav>
+        <h1><a href="#">ONLINE TODO LIST</a></h1>
+        <ul>
+          <li class="todo_sm">
+            <a href="/vue_todolist/#/todolist"
+              ><span>{{ checkUser.user.nickname }}的代辦事項</span></a
+            >
+            <!-- <a @click="signoutPost">登出</a> -->
+            <RouterLink to="/" @click="signoutPost">登出</RouterLink>
+          </li>
+        </ul>
+      </nav>
+      <div class="conatiner todoListPage vhContainer">
+        <div class="todoList_Content">
+          <div class="inputBox">
+            <input type="text" placeholder="請輸入待辦事項" v-model="todoField" />
+            <a href="" @click.prevent="addTodos(todoField)">
+              <i class="fa fa-plus"></i>
+            </a>
+          </div>
+          <div class="todoList_list" v-if="getTodo">
+            <ul class="todoList_tab">
+              <li>
+                <a
+                  href="#"
+                  :class="{ active: activeTab === 'taball' }"
+                  @click.prevent="selectTab('taball')"
+                  >全部</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  :class="{ active: activeTab === 'tabnot' }"
+                  @click.prevent="selectTab('tabnot')"
+                  >待完成</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  :class="{ active: activeTab === 'tabok' }"
+                  @click.prevent="selectTab('tabok')"
+                  >已完成</a
+                >
               </li>
             </ul>
-            <p>{{ todoMsg }}</p>
-            <div class="todoList_statistics" v-if="!todoMsg">
-              <p>{{ checkListNot.length }} 個待完成項目</p>
-            </div>
-          </div>
-          <div class="todoList_items" v-if="activeTab === 'tabnot'">
-            <ul class="todoList_item">
-              <li v-for="(list, index) in checkListNot" :key="list.id">
-                <label class="todoList_label" :for="list.id">
-                  <input
-                    class="todoList_input"
-                    type="checkbox"
-                    value="true"
-                    :id="list.id"
-                    v-model="list.status"
-                    @click="toggleStatus(list._id)"
-                  />
-                  <span>{{ list.todos }}</span>
-                </label>
+            <div class="todoList_items" v-if="activeTab === 'taball'">
+              <ul class="todoList_item">
+                <li v-for="(list, index) in getTodo" :key="list._id">
+                  <label class="todoList_label" :for="list._id">
+                    <input
+                      class="todoList_input"
+                      type="checkbox"
+                      value="true"
+                      :id="list._id"
+                      v-model="list.status"
+                      @click="toggleStatus(list._id)"
+                    />
 
-                <a href="" @click.prevent="deleteTodos(list._id)">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-            </ul>
-            <p>{{ todoMsg }}</p>
-            <div class="todoList_statistics" v-if="!todoMsg">
-              <p>{{ checkListNot.length }} 個待完成項目</p>
-            </div>
-          </div>
-          <div class="todoList_items" v-if="activeTab === 'tabok'">
-            <ul class="todoList_item">
-              <li v-for="list in checkListOK" :key="list.id">
-                <label class="todoList_label" :for="list.id">
-                  <input
-                    class="todoList_input"
-                    type="checkbox"
-                    value="true"
-                    :id="list.id"
-                    v-model="list.status"
-                    @click="toggleStatus(list._id)"
-                  />
-                  <span>{{ list.todos }}</span>
-                </label>
+                    <span>{{ list.todos }}</span>
+                  </label>
 
-                <a href="" @click.prevent="deleteTodos(list._id)">
-                  <i class="fa fa-times"></i>
-                </a>
-              </li>
-            </ul>
-            <p>{{ todoMsg }}</p>
-            <div class="todoList_statistics" v-if="!todoMsg">
-              <p>{{ checkListOK.length }} 個已完成項目</p>
+                  <a href="" @click.prevent="deleteTodos(list._id)">
+                    <i class="fa fa-times"></i>
+                  </a>
+                </li>
+              </ul>
+              <p>{{ todoMsg }}</p>
+              <div class="todoList_statistics" v-if="!todoMsg">
+                <p>{{ checkListNot.length }} 個待完成項目</p>
+              </div>
+            </div>
+            <div class="todoList_items" v-if="activeTab === 'tabnot'">
+              <ul class="todoList_item">
+                <li v-for="(list, index) in checkListNot" :key="list.id">
+                  <label class="todoList_label" :for="list.id">
+                    <input
+                      class="todoList_input"
+                      type="checkbox"
+                      value="true"
+                      :id="list.id"
+                      v-model="list.status"
+                      @click="toggleStatus(list._id)"
+                    />
+                    <span>{{ list.todos }}</span>
+                  </label>
+
+                  <a href="" @click.prevent="deleteTodos(list._id)">
+                    <i class="fa fa-times"></i>
+                  </a>
+                </li>
+              </ul>
+              <p>{{ todoMsg }}</p>
+              <div class="todoList_statistics" v-if="!todoMsg">
+                <p>{{ checkListNot.length }} 個待完成項目</p>
+              </div>
+            </div>
+            <div class="todoList_items" v-if="activeTab === 'tabok'">
+              <ul class="todoList_item">
+                <li v-for="list in checkListOK" :key="list.id">
+                  <label class="todoList_label" :for="list.id">
+                    <input
+                      class="todoList_input"
+                      type="checkbox"
+                      value="true"
+                      :id="list.id"
+                      v-model="list.status"
+                      @click="toggleStatus(list._id)"
+                    />
+                    <span>{{ list.todos }}</span>
+                  </label>
+
+                  <a href="" @click.prevent="deleteTodos(list._id)">
+                    <i class="fa fa-times"></i>
+                  </a>
+                </li>
+              </ul>
+              <p>{{ todoMsg }}</p>
+              <div class="todoList_statistics" v-if="!todoMsg">
+                <p>{{ checkListOK.length }} 個已完成項目</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div style="text-align: center" v-else>
-          <h2>目前尚無待辦事項</h2>
-          <img :src="empty" alt="#" />
+          <div style="text-align: center" v-else>
+            <h2>目前尚無待辦事項</h2>
+            <img :src="empty" alt="#" />
+          </div>
+          <hr />
+          <div class="board">
+            <div v-for="(card, index) in state.cards" :key="index" class="card">
+              <h3>{{ card.title }}</h3>
+              <draggable
+                :list="card.list"
+                group="tasks"
+                ghost-class="ghost"
+                chosen-class="chosenClass"
+                animation="300"
+                @start="onStart"
+                @end="onEnd"
+              >
+                <template #item="{ element }">
+                  <div class="item">
+                    {{ element.name }}
+                  </div>
+                </template>
+              </draggable>
+            </div>
+          </div>
+          <hr />
         </div>
       </div>
     </div>
@@ -139,6 +166,8 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import Swal from 'sweetalert2/dist/sweetalert2.js'
 import { useRouter } from 'vue-router'
 import empty from '/src/image/empty.png'
+import { reactive } from 'vue'
+import draggable from 'vuedraggable'
 
 const local = 'http://localhost:3000'
 const signInToken = ref('')
@@ -146,6 +175,7 @@ const errMsg = ref('')
 const router = useRouter()
 //驗證
 const checkUser = ref('')
+const isLoading = ref(true) // 載入狀態
 
 const signCheck = async () => {
   signInToken.value = document.cookie.replace(
@@ -192,7 +222,6 @@ const signCheck = async () => {
     }, 500)
   }
 }
-signCheck()
 
 //登出
 const signoutPost = async () => {
@@ -332,10 +361,45 @@ const checkListOK = computed(() => {
 })
 
 onMounted(async () => {
-  if (signInToken.value) {
-    await getTodos() // 加載資料
-  } else {
-    router.push({ path: '/' }) // 如果沒 token，就跳轉回登入頁
+  try {
+    await signCheck()
+    if (signInToken.value) {
+      await getTodos()
+    } else {
+      router.push({ path: '/' })
+    }
+  } finally {
+    isLoading.value = false // 無論成功或失敗，都結束載入狀態
   }
 })
+
+////
+const state = reactive({
+  // 每個卡片的數據
+  cards: [
+    {
+      title: '待處理',
+      list: [
+        { name: '任務 A', id: 0 },
+        { name: '任務 B', id: 1 }
+      ]
+    },
+    {
+      title: '處理中',
+      list: [{ name: '任務 C', id: 2 }]
+    },
+    {
+      title: '處理完成',
+      list: [{ name: '任務 D', id: 3 }]
+    }
+  ]
+})
+
+const onStart = () => {
+  console.log('開始拖拽')
+}
+
+const onEnd = () => {
+  console.log('結束拖拽')
+}
 </script>
