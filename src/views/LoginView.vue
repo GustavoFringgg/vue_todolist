@@ -42,12 +42,13 @@
 </template>
 <!-- -------------------------- -->
 <script setup>
-import Swal from 'sweetalert2/dist/sweetalert2.js'
 import axios from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import main from '/src/image/main.png'
 import logo from '/src/image/logo.png'
+import { useAlert } from '@/Composables/useAlert'
+const { showAlert } = useAlert()
 //api router
 
 const local = 'http://localhost:3000'
@@ -64,53 +65,21 @@ const signInField = ref({
 
 const signInPost = async () => {
   if (!signInField.value.email) {
-    return Swal.fire({
-      position: 'top',
-      title: '請輸入Email',
-      icon: 'error',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert('請輸入Email', 'error')
   }
   if (!signInField.value.password) {
-    return Swal.fire({
-      position: 'top',
-      title: '請輸入密碼',
-      icon: 'error',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert('請輸入密碼', 'error')
   }
   try {
     const res = await axios.post(`${local}/users/sign_in`, signInField.value)
 
     signStatus.value = res.data.status
     signInToken.value = res.data.token
-    Swal.fire({
-      position: 'top',
-      title: `${res.data.user.name}登入成功`,
-      icon: 'success',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert(`${res.data.user.name}登入成功`, 'success')
     document.cookie = `userToken=${res.data.user.token}` //儲存cookie
     tokenCheck()
   } catch (error) {
-    Swal.fire({
-      position: 'top',
-      title: `${(errMsg.value = error.response.data.message)}`,
-      icon: 'error',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert(`${(errMsg.value = error.response.data.message)}`, 'error')
   }
 }
 
@@ -137,7 +106,6 @@ const tokenCheck = async () => {
       }
     })
     checkUser.value = res.data
-
     router.push({ path: '/todolist' })
   } catch (error) {
     console.log('tokencheckerror:', error.message)

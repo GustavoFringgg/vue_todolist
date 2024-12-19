@@ -65,12 +65,13 @@
 </template>
 <!-- ------------------- -->
 <script setup>
-import Swal from 'sweetalert2/dist/sweetalert2.js'
 import axios from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import main from '/src/image/main.png'
 import logo from '/src/image/logo.png'
+import { useAlert } from '@/Composables/useAlert'
+const { showAlert } = useAlert()
 const local = 'http://localhost:3000'
 
 const signUpUID = ref('')
@@ -86,7 +87,7 @@ const signUpField = ref({
 
 const signUpPost = async () => {
   if (signUpField.value.password !== signUpField.value.confirmPassword) {
-    return showAlert('密碼不相同', 'error')
+    showAlert('密碼不相同', 'error')
   }
   if (
     !signUpField.value.email ||
@@ -94,37 +95,18 @@ const signUpPost = async () => {
     !signUpField.value.nickname ||
     !signUpField.value.confirmPassword
   ) {
-    return showAlert('資料不齊全', 'error')
+    showAlert('資料不齊全', 'error')
   }
   try {
     const res = await axios.post(`${local}/users/sign_up`, signUpField.value)
-    console.log(res)
+
     signUpUID.value = res.data.uid
-    Swal.fire({
-      position: 'top',
-      title: '註冊成功，導回登入頁',
-      icon: 'success',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert('註冊成功，導回登入頁', 'success')
     router.push({ path: '/' })
   } catch (error) {
     console.log('error', error)
 
-    return showAlert(error.response.data.message, 'error')
+    showAlert(`${error.response.data.message}`, 'error')
   }
-}
-const showAlert = (title, icon) => {
-  return Swal.fire({
-    position: 'top',
-    title: title,
-    icon: icon,
-    timer: 1500,
-    toast: true,
-    showConfirmButton: false,
-    timerProgressBar: true
-  })
 }
 </script>

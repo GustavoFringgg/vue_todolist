@@ -1,3 +1,9 @@
+測試帳號:
+email:
+testuser@gmail.com
+password:
+123456789a
+
 # vue-finally
 
 This template should help get you started developing with Vue 3 in Vite.

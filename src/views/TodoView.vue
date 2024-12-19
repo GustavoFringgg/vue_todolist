@@ -31,7 +31,7 @@
                   href="#"
                   :class="{ active: activeTab === 'taball' }"
                   @click.prevent="selectTab('taball')"
-                  >全部</a
+                  >待處理</a
                 >
               </li>
               <li>
@@ -39,7 +39,7 @@
                   href="#"
                   :class="{ active: activeTab === 'tabnot' }"
                   @click.prevent="selectTab('tabnot')"
-                  >待完成</a
+                  >處理中</a
                 >
               </li>
               <li>
@@ -53,7 +53,7 @@
             </ul>
             <div class="todoList_items" v-if="activeTab === 'taball'">
               <ul class="todoList_item">
-                <li v-for="(list, index) in getTodo" :key="list._id">
+                <li v-for="(list, index) in checkListPending" :key="list._id">
                   <label class="todoList_label" :for="list._id">
                     <input
                       class="todoList_input"
@@ -73,13 +73,14 @@
                 </li>
               </ul>
               <p>{{ todoMsg }}</p>
+
               <div class="todoList_statistics" v-if="!todoMsg">
-                <p>{{ checkListNot.length }} 個待完成項目</p>
+                <p>{{ checkListPending.length }} 待完成項目</p>
               </div>
             </div>
             <div class="todoList_items" v-if="activeTab === 'tabnot'">
               <ul class="todoList_item">
-                <li v-for="(list, index) in checkListNot" :key="list.id">
+                <li v-for="(list, index) in checkListInProgress" :key="list.id">
                   <label class="todoList_label" :for="list.id">
                     <input
                       class="todoList_input"
@@ -99,12 +100,12 @@
               </ul>
               <p>{{ todoMsg }}</p>
               <div class="todoList_statistics" v-if="!todoMsg">
-                <p>{{ checkListNot.length }} 個待完成項目</p>
+                <p>{{ checkListInProgress.length }} 個處理中項目</p>
               </div>
             </div>
             <div class="todoList_items" v-if="activeTab === 'tabok'">
               <ul class="todoList_item">
-                <li v-for="list in checkListOK" :key="list.id">
+                <li v-for="list in checkListCompleted" :key="list.id">
                   <label class="todoList_label" :for="list.id">
                     <input
                       class="todoList_input"
@@ -124,7 +125,7 @@
               </ul>
               <p>{{ todoMsg }}</p>
               <div class="todoList_statistics" v-if="!todoMsg">
-                <p>{{ checkListOK.length }} 個已完成項目</p>
+                <p>{{ checkListCompleted.length }} 個已完成項目</p>
               </div>
             </div>
           </div>
@@ -133,8 +134,9 @@
             <img :src="empty" alt="#" />
           </div>
           <hr />
+          <hr />
           <div class="board">
-            <div v-for="(card, index) in state.cards" :key="index" class="card">
+            <div v-for="(card, index) in state.cards" :key="card.title" class="card">
               <h3>{{ card.title }}</h3>
               <draggable
                 :list="card.list"
@@ -166,9 +168,9 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import Swal from 'sweetalert2/dist/sweetalert2.js'
 import { useRouter } from 'vue-router'
 import empty from '/src/image/empty.png'
-import { reactive } from 'vue'
 import draggable from 'vuedraggable'
-
+import { useAlert } from '@/Composables/useAlert'
+const { showAlert } = useAlert()
 const local = 'http://localhost:3000'
 const signInToken = ref('')
 const errMsg = ref('')
@@ -183,15 +185,8 @@ const signCheck = async () => {
     '$1'
   )
   if (!signInToken.value) {
-    Swal.fire({
-      position: 'top',
-      title: `請登入`,
-      icon: 'error',
-      timer: 1000,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert(`請登入`, 'error')
+
     router.push({ path: '/' })
   }
 
@@ -203,17 +198,9 @@ const signCheck = async () => {
     })
 
     checkUser.value = res.data
-    getTodos()
   } catch (error) {
-    Swal.fire({
-      position: 'top',
-      title: error.response.data.message,
-      icon: 'error',
-      timer: 500,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert(`${error.response.data.message}`, 'error')
+
     router.push({ path: '/' })
     setTimeout(() => {
       nextTick(() => {
@@ -236,15 +223,8 @@ const signoutPost = async () => {
   )
   console.log('signoutPost:', res)
   document.cookie = 'userToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC;'
-  Swal.fire({
-    position: 'top',
-    title: `${res.data.message}`,
-    icon: 'success',
-    timer: 1000,
-    toast: true,
-    showConfirmButton: false,
-    timerProgressBar: true
-  })
+  showAlert(`${res.data.message}`, 'success')
+
   signInToken.value = ''
   checkUser.value = ''
   getTodo.value = []
@@ -260,7 +240,6 @@ const getTodos = async () => {
         Authorization: `Bearer ${signInToken.value}`
       }
     })
-    console.log('getTodo:', res)
     todoMsg.value = ''
     // res.data.data.forEach((item) => {
     //   const createTime = item.createTime
@@ -268,8 +247,21 @@ const getTodos = async () => {
     //   const formate = date.toISOString().slice(0, 19).replace('T', ' ')
     //   item.createTime = formate
     // })
-
     getTodo.value = res.data.message
+    const todos = res.data.message.Todos
+    state.value.cards[0].list = todos
+      .filter((todo) => todo.status === 'pending')
+      .map((todo) => ({ name: todo.todos, id: todo.id }))
+
+    state.value.cards[1].list = todos
+      .filter((todo) => todo.status === 'in_progress')
+      .map((todo) => ({ name: todo.todos, id: todo.id }))
+
+    state.value.cards[2].list = todos
+      .filter((todo) => todo.status === 'completed')
+      .map((todo) => ({ name: todo.todos, id: todo.id }))
+
+    // console.log('gettodoooo', getTodo.value.Todos[0].todos)
   } catch (error) {
     errMsg.value = error.response?.data?.message || 'geterror'
   }
@@ -282,15 +274,7 @@ const newTodo = ref({
 })
 const addTodos = async () => {
   if (!todoField.value || !todoField.value.trim()) {
-    return Swal.fire({
-      position: 'top',
-      title: '請輸入代辦事項',
-      icon: 'warning',
-      timer: 500,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert('請輸入代辦事項', 'warning')
   }
   try {
     newTodo.value.todos = todoField.value
@@ -301,15 +285,7 @@ const addTodos = async () => {
     })
 
     todoField.value = ''
-    Swal.fire({
-      position: 'top',
-      title: '新增成功',
-      icon: 'success',
-      timer: 500,
-      toast: true,
-      showConfirmButton: false,
-      timerProgressBar: true
-    })
+    showAlert('新增成功', 'success')
 
     getTodos()
   } catch (error) {
@@ -351,13 +327,16 @@ const selectTab = (tab) => {
 }
 
 // //未完成
-const checkListNot = computed(() => {
-  return getTodo.value.filter((item) => item.status === false)
+const checkListPending = computed(() => {
+  return getTodo.value.Todos.filter((item) => item.status === 'pending')
 })
 
-//已完成
-const checkListOK = computed(() => {
-  return getTodo.value.filter((item) => item.status === true)
+const checkListInProgress = computed(() => {
+  return getTodo.value.Todos.filter((item) => item.status === 'in_progress')
+})
+
+const checkListCompleted = computed(() => {
+  return getTodo.value.Todos.filter((item) => item.status === 'completed')
 })
 
 onMounted(async () => {
@@ -373,33 +352,20 @@ onMounted(async () => {
   }
 })
 
-////
-const state = reactive({
+const state = ref({
   // 每個卡片的數據
   cards: [
-    {
-      title: '待處理',
-      list: [
-        { name: '任務 A', id: 0 },
-        { name: '任務 B', id: 1 }
-      ]
-    },
-    {
-      title: '處理中',
-      list: [{ name: '任務 C', id: 2 }]
-    },
-    {
-      title: '處理完成',
-      list: [{ name: '任務 D', id: 3 }]
-    }
+    { title: '待處理', list: [] },
+    { title: '處理中', list: [] },
+    { title: '處理完成', list: [] }
   ]
 })
 
-const onStart = () => {
-  console.log('開始拖拽')
-}
+// const onStart = () => {
+//   console.log('開始拖拽')
+// }
 
-const onEnd = () => {
-  console.log('結束拖拽')
-}
+// const onEnd = () => {
+//   console.log('結束拖拽')
+// }
 </script>
