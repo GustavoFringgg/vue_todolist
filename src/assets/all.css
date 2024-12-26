@@ -446,7 +446,7 @@ nav ul a span {
 }
 
 .todoList_Content {
-  width: 500px;
+  width: 750px;
   margin: 0 auto;
 }
 
@@ -645,6 +645,7 @@ nav ul a span {
 
 /* 以下是vuedragon */
 .board {
+  max-width: 100%;
   display: flex;
   justify-content: space-between;
   gap: 20px;

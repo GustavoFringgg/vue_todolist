@@ -24,7 +24,7 @@
               <i class="fa fa-plus"></i>
             </a>
           </div>
-          <div class="todoList_list" v-if="getTodo">
+          <div class="todoList_list" v-if="getTodo.Todos">
             <ul class="todoList_tab">
               <li>
                 <a
@@ -53,21 +53,21 @@
             </ul>
             <div class="todoList_items" v-if="activeTab === 'taball'">
               <ul class="todoList_item">
-                <li v-for="(list, index) in checkListPending" :key="list._id">
-                  <label class="todoList_label" :for="list._id">
+                <li v-for="(list, index) in checkListPending" :key="list.id">
+                  <label class="todoList_label" :for="list.id">
                     <input
                       class="todoList_input"
                       type="checkbox"
                       value="true"
-                      :id="list._id"
+                      :id="list.id"
                       v-model="list.status"
-                      @click="toggleStatus(list._id)"
+                      @click="toggleToProgress(list.id)"
                     />
 
                     <span>{{ list.todos }}</span>
                   </label>
 
-                  <a href="" @click.prevent="deleteTodos(list._id)">
+                  <a href="" @click.prevent="deleteTodos(list.id)">
                     <i class="fa fa-times"></i>
                   </a>
                 </li>
@@ -88,12 +88,12 @@
                       value="true"
                       :id="list.id"
                       v-model="list.status"
-                      @click="toggleStatus(list._id)"
+                      @click="toggleToCompleted(list.id)"
                     />
                     <span>{{ list.todos }}</span>
                   </label>
 
-                  <a href="" @click.prevent="deleteTodos(list._id)">
+                  <a href="" @click.prevent="deleteTodos(list.id)">
                     <i class="fa fa-times"></i>
                   </a>
                 </li>
@@ -113,12 +113,12 @@
                       value="true"
                       :id="list.id"
                       v-model="list.status"
-                      @click="toggleStatus(list._id)"
+                      @click="toggleStatus(list.id)"
                     />
                     <span>{{ list.todos }}</span>
                   </label>
 
-                  <a href="" @click.prevent="deleteTodos(list._id)">
+                  <a href="" @click.prevent="deleteTodos(list.id)">
                     <i class="fa fa-times"></i>
                   </a>
                 </li>
@@ -133,29 +133,6 @@
             <h2>目前尚無待辦事項</h2>
             <img :src="empty" alt="#" />
           </div>
-          <hr />
-          <hr />
-          <div class="board">
-            <div v-for="(card, index) in state.cards" :key="card.title" class="card">
-              <h3>{{ card.title }}</h3>
-              <draggable
-                :list="card.list"
-                group="tasks"
-                ghost-class="ghost"
-                chosen-class="chosenClass"
-                animation="300"
-                @start="onStart"
-                @end="onEnd"
-              >
-                <template #item="{ element }">
-                  <div class="item">
-                    {{ element.name }}
-                  </div>
-                </template>
-              </draggable>
-            </div>
-          </div>
-          <hr />
         </div>
       </div>
     </div>
@@ -165,7 +142,6 @@
 <script setup>
 import axios from 'axios'
 import { computed, nextTick, onMounted, ref } from 'vue'
-import Swal from 'sweetalert2/dist/sweetalert2.js'
 import { useRouter } from 'vue-router'
 import empty from '/src/image/empty.png'
 import draggable from 'vuedraggable'
@@ -248,18 +224,7 @@ const getTodos = async () => {
     //   item.createTime = formate
     // })
     getTodo.value = res.data.message
-    const todos = res.data.message.Todos
-    state.value.cards[0].list = todos
-      .filter((todo) => todo.status === 'pending')
-      .map((todo) => ({ name: todo.todos, id: todo.id }))
-
-    state.value.cards[1].list = todos
-      .filter((todo) => todo.status === 'in_progress')
-      .map((todo) => ({ name: todo.todos, id: todo.id }))
-
-    state.value.cards[2].list = todos
-      .filter((todo) => todo.status === 'completed')
-      .map((todo) => ({ name: todo.todos, id: todo.id }))
+    console.log('getTodo.value.Todos', getTodo.value.Todos)
 
     // console.log('gettodoooo', getTodo.value.Todos[0].todos)
   } catch (error) {
@@ -283,16 +248,40 @@ const addTodos = async () => {
         Authorization: `Bearer ${signInToken.value}`
       }
     })
-
+    console.log('res.data', res.data)
     todoField.value = ''
     showAlert('新增成功', 'success')
-
-    getTodos()
+    getTodo.value.Todos.push(res.data.data)
+    // getTodos()
   } catch (error) {
     errMsg.value = error.response?.data?.message || 'adderror'
   }
 }
 
+const toggleToProgress = async (id) => {
+  const res = await axios.patch(
+    `${local}/todos/${id}/toggle`,
+    { status: 'in_progress' },
+    {
+      headers: {
+        Authorization: `Bearer ${signInToken.value}`
+      }
+    }
+  )
+  getTodos()
+}
+const toggleToCompleted = async (id) => {
+  const res = await axios.patch(
+    `${local}/todos/${id}/toggle`,
+    { status: 'completed' },
+    {
+      headers: {
+        Authorization: `Bearer ${signInToken.value}`
+      }
+    }
+  )
+  getTodos()
+}
 const toggleStatus = async (id) => {
   const res = await axios.patch(
     `${local}/todos/${id}/toggle`,
@@ -352,14 +341,14 @@ onMounted(async () => {
   }
 })
 
-const state = ref({
-  // 每個卡片的數據
-  cards: [
-    { title: '待處理', list: [] },
-    { title: '處理中', list: [] },
-    { title: '處理完成', list: [] }
-  ]
-})
+// const state = ref({
+//   // 每個卡片的數據
+//   cards: [
+//     { title: '待處理', list: [] },
+//     { title: '處理中', list: [] },
+//     { title: '處理完成', list: [] }
+//   ]
+// })
 
 // const onStart = () => {
 //   console.log('開始拖拽')
