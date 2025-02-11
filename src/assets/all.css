@@ -271,8 +271,11 @@ nav ul a span {
 }
 
 @media (max-width: 576px) {
-  nav ul .todo_sm {
+  /* nav ul .todo_sm {
     display: none;
+  } */
+  .todo_sm a {
+    margin-right: 5px;
   }
 }
 

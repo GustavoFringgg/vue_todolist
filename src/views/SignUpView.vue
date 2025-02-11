@@ -99,10 +99,12 @@ const signUpPost = async () => {
   }
   try {
     const res = await axios.post(`${local}/users/sign_up`, signUpField.value)
-
+    console.log('註冊回來的res', res)
     signUpUID.value = res.data.uid
-    showAlert('註冊成功，導回登入頁', 'success')
-    router.push({ path: '/' })
+    showAlert('註冊成功，導回登入頁', 'success', 2000)
+    setTimeout(() => {
+      router.push({ path: '/' })
+    }, 2000)
   } catch (error) {
     console.log('error', error)
 

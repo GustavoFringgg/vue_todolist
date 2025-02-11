@@ -11,7 +11,6 @@
             <a href="/vue_todolist/#/todolist"
               ><span>{{ checkUser.user.nickname }}的代辦事項</span></a
             >
-            <!-- <a @click="signoutPost">登出</a> -->
             <RouterLink to="/" @click="signoutPost">登出</RouterLink>
           </li>
         </ul>
@@ -24,14 +23,14 @@
               <i class="fa fa-plus"></i>
             </a>
           </div>
-          <div class="todoList_list" v-if="getTodo.Todos">
+          <div class="todoList_list" v-if="getTodo.message">
             <ul class="todoList_tab">
               <li>
                 <a
                   href="#"
                   :class="{ active: activeTab === 'taball' }"
                   @click.prevent="selectTab('taball')"
-                  >待處理</a
+                  >全部</a
                 >
               </li>
               <li>
@@ -39,7 +38,7 @@
                   href="#"
                   :class="{ active: activeTab === 'tabnot' }"
                   @click.prevent="selectTab('tabnot')"
-                  >處理中</a
+                  >待處理</a
                 >
               </li>
               <li>
@@ -53,7 +52,7 @@
             </ul>
             <div class="todoList_items" v-if="activeTab === 'taball'">
               <ul class="todoList_item">
-                <li v-for="(list, index) in checkListPending" :key="list.id">
+                <li v-for="(list, index) in getTodo.message" :key="list.id">
                   <label class="todoList_label" :for="list.id">
                     <input
                       class="todoList_input"
@@ -63,7 +62,6 @@
                       v-model="list.status"
                       @click="toggleToProgress(list.id)"
                     />
-
                     <span>{{ list.todos }}</span>
                   </label>
 
@@ -80,7 +78,7 @@
             </div>
             <div class="todoList_items" v-if="activeTab === 'tabnot'">
               <ul class="todoList_item">
-                <li v-for="(list, index) in checkListInProgress" :key="list.id">
+                <li v-for="(list, index) in checkListPending" :key="list.id">
                   <label class="todoList_label" :for="list.id">
                     <input
                       class="todoList_input"
@@ -100,7 +98,7 @@
               </ul>
               <p>{{ todoMsg }}</p>
               <div class="todoList_statistics" v-if="!todoMsg">
-                <p>{{ checkListInProgress.length }} 個處理中項目</p>
+                <p>{{ checkListPending.length }} 個處理中項目</p>
               </div>
             </div>
             <div class="todoList_items" v-if="activeTab === 'tabok'">
@@ -144,7 +142,6 @@ import axios from 'axios'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import empty from '/src/image/empty.png'
-import draggable from 'vuedraggable'
 import { useAlert } from '@/Composables/useAlert'
 const { showAlert } = useAlert()
 const local = 'http://localhost:3000'
@@ -180,7 +177,7 @@ const signCheck = async () => {
     router.push({ path: '/' })
     setTimeout(() => {
       nextTick(() => {
-        location.reload() // 強制刷新頁面，保證渲染完成後再重新加載
+        location.reload()
       })
     }, 500)
   }
@@ -207,7 +204,7 @@ const signoutPost = async () => {
   router.push({ path: '/' })
 }
 
-const getTodo = ref([])
+const getTodo = ref(null)
 const todoMsg = ref('')
 const getTodos = async () => {
   try {
@@ -217,16 +214,8 @@ const getTodos = async () => {
       }
     })
     todoMsg.value = ''
-    // res.data.data.forEach((item) => {
-    //   const createTime = item.createTime
-    //   const date = new Date(createTime * 1000)
-    //   const formate = date.toISOString().slice(0, 19).replace('T', ' ')
-    //   item.createTime = formate
-    // })
-    getTodo.value = res.data.message
-    console.log('getTodo.value.Todos', getTodo.value.Todos)
-
-    // console.log('gettodoooo', getTodo.value.Todos[0].todos)
+    getTodo.value = res.data
+    console.log(' getTodo.value', getTodo.value)
   } catch (error) {
     errMsg.value = error.response?.data?.message || 'geterror'
   }
@@ -251,8 +240,7 @@ const addTodos = async () => {
     console.log('res.data', res.data)
     todoField.value = ''
     showAlert('新增成功', 'success')
-    getTodo.value.Todos.push(res.data.data)
-    // getTodos()
+    getTodos()
   } catch (error) {
     errMsg.value = error.response?.data?.message || 'adderror'
   }
@@ -315,17 +303,16 @@ const selectTab = (tab) => {
   activeTab.value = tab
 }
 
-// //未完成
 const checkListPending = computed(() => {
-  return getTodo.value.Todos.filter((item) => item.status === 'pending')
-})
-
-const checkListInProgress = computed(() => {
-  return getTodo.value.Todos.filter((item) => item.status === 'in_progress')
+  return getTodo.value.message.filter((item) => item.status === false)
 })
 
 const checkListCompleted = computed(() => {
-  return getTodo.value.Todos.filter((item) => item.status === 'completed')
+  console.log('getTodo.message', getTodo.value)
+  const res = getTodo.value.message.filter((item) => item.status === true)
+  console.log('ressss', res)
+
+  return res
 })
 
 onMounted(async () => {
